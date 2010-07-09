@@ -10,6 +10,6 @@ setup(name="OFS",
       maintainer_email="bosteen@gmail.com",
       license="http://www.apache.org/licenses/LICENSE-2.0",
       packages=find_packages(),
-      
+      test_suite = "tests.test.TestPairtreeOFS",
       )
 
