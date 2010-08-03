@@ -1,3 +1,4 @@
+
 class OFSInterface(object):
     '''Abstract specification of OFS interface. Implementing backends *must*
     implement at least this interface.
@@ -13,7 +14,7 @@ class OFSInterface(object):
         * _creation_date
         * _last_modified
         * _content_length
-        * _checksum (=sha1?)  --> "{type}:{number}" eg "md5:767f7a..."
+        * _checksum --> "{type}:{number}" eg "md5:767f7a..."
         * _owner
         * _format (content-type)
         * _bucket
