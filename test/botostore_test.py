@@ -1,5 +1,5 @@
 import random, unittest
-from s3store import S3OFS, S3OFSException
+from ofs.remote import S3OFS, S3OFSException
 from StringIO import StringIO
 
 TEST_TEXT = """I am a banana"""

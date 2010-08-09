@@ -13,12 +13,7 @@ GS and S3 through this module.
 
 """
 
-class ArchiveOrgOFS(S3OFS):
-    """ See: http://www.archive.org/help/abouts3.txt """
-    
-    def __init__(self, aws_access_key_id=None, aws_secret_access_key=None, **kwargs):
-        super(ArchiveOrgOFS, self).__init__(aws_access_key_id, aws_secret_access_key,
-            host="s3.us.archive.org", **kwargs)
+
 
 
 class S3OFSException(Exception): pass
@@ -179,3 +174,10 @@ class S3OFS(OFSInterface):
                 del key.metadata[_key] 
         key.close()
 
+
+class ArchiveOrgOFS(S3OFS):
+    """ See: http://www.archive.org/help/abouts3.txt """
+
+    def __init__(self, aws_access_key_id=None, aws_secret_access_key=None, **kwargs):
+        super(ArchiveOrgOFS, self).__init__(aws_access_key_id, aws_secret_access_key,
+            host="s3.us.archive.org", **kwargs)
