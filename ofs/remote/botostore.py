@@ -106,8 +106,8 @@ class S3OFS(OFSInterface):
             if not '_creation_time' in params:
                 params['_creation_time'] = str(datetime.now())
         
-        if not '_checksum' in params:
-            params['_checksum'] = 'md5:' + key.compute_md5(stream_object)[0]
+        #if not '_checksum' in params:
+        #    params['_checksum'] = 'md5:' + key.compute_md5(stream_object)[0]
         
         self._update_key_metadata(key, params)
         key.set_contents_from_file(stream_object)
