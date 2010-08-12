@@ -1,4 +1,5 @@
 import os
+import json
 from datetime import datetime
 from tempfile import mkstemp
 from ofs.base import OFSInterface
@@ -106,8 +107,8 @@ class S3OFS(OFSInterface):
             if not '_creation_time' in params:
                 params['_creation_time'] = str(datetime.now())
         
-        #if not '_checksum' in params:
-        #    params['_checksum'] = 'md5:' + key.compute_md5(stream_object)[0]
+        if not '_checksum' in params:
+            params['_checksum'] = 'md5:' + key.compute_md5(stream_object)[0]
         
         self._update_key_metadata(key, params)
         key.set_contents_from_file(stream_object)
@@ -124,7 +125,9 @@ class S3OFS(OFSInterface):
     def get_metadata(self, bucket, label):
         bucket = self._require_bucket(bucket)
         key = self._require_key(bucket, label)
-        meta = key.metadata
+        
+        # HACK: Amazon keeps getting hiccups when we actually use their metadata fields. 
+        meta = json.loads(key.metadata.get('_meta'))
         meta.update({
             '_bucket': bucket.name,
             '_label': label,
@@ -144,8 +147,9 @@ class S3OFS(OFSInterface):
         if '_owner' in params:
             key.owner = params['_owner']
             del params['_owner']
-            
-        key.update_metadata(params)
+        
+        # HACK: Amazon keeps getting hiccups when we actually use their metadata fields. 
+        key.update_metadata({'_meta': json.dumps(params)})
         
 
     def update_metadata(self, bucket, label, params):
