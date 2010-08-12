@@ -1,3 +1,9 @@
+'''This implements OFS backends for remote storage systems supported by the
+`Boto library <http://code.google.com/p/boto/`_ including S3 and archive.org.
+
+Boto will also be the refernce implementation for Google Storage, so only minor
+modifications would be required to support both GS and S3 through this module.
+'''
 import os
 import json
 from datetime import datetime
@@ -6,21 +12,14 @@ from ofs.base import OFSInterface
 import boto
 import boto.exception
 
-"""
-This implements OFS using Boto and S3. Boto will also be the refernce implementation 
-for Google Storage, so only minor modifications would be required to support both 
-GS and S3 through this module.
-
-
-"""
-
-
-
 
 class S3OFSException(Exception): pass
 
 class S3OFS(OFSInterface):
-    """ This is a simple S3 implementation of OFS, using boto. """
+    '''s3 backend for OFS.
+    
+    This is a simple S3 implementation of OFS that depends on the boto library.
+    '''
     
     def __init__(self, aws_access_key_id=None, aws_secret_access_key=None, **kwargs):
         # assume external configuration at the moment. 
@@ -180,7 +179,10 @@ class S3OFS(OFSInterface):
 
 
 class ArchiveOrgOFS(S3OFS):
-    """ See: http://www.archive.org/help/abouts3.txt """
+    '''An archive.org backend utilizing the archive.org s3 interface (see:
+    http://www.archive.org/help/abouts3.txt).
+
+    '''
 
     def __init__(self, aws_access_key_id=None, aws_secret_access_key=None, **kwargs):
         super(ArchiveOrgOFS, self).__init__(aws_access_key_id, aws_secret_access_key,
