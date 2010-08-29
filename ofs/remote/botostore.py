@@ -124,7 +124,7 @@ class BotoOFS(OFSInterface):
         key = self._require_key(bucket, label)
         
         # HACK: Amazon keeps getting hiccups when we actually use their metadata fields. 
-        meta = json.loads(key.metadata.get('_meta'))
+        meta = json.loads(key.metadata.get('_meta', '{}'))
         meta.update({
             '_bucket': bucket.name,
             '_label': label,
