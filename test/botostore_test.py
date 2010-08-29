@@ -1,5 +1,6 @@
 import random, unittest
-from ofs.remote import S3OFS, S3OFSException
+from ofs.remote import S3OFS, GSOFS
+from ofs import OFSException
 from StringIO import StringIO
 
 TEST_TEXT = """I am a banana"""
@@ -8,7 +9,7 @@ class TestS3OFS(unittest.TestCase):
         
     def setUp(self):
         self.bucket_name = 'ofs-test-bucket'
-        self.ofs = S3OFS()
+        self.ofs = GSOFS()
         self.s3bucket = self.ofs.conn.create_bucket(self.bucket_name)
     
     def tearDown(self):
@@ -50,7 +51,7 @@ class TestS3OFS(unittest.TestCase):
         self.ofs.put_stream(self.bucket_name, name, self._makefp())
         assert self.ofs.get_stream(self.bucket_name, name) != None, name
         self.ofs.del_stream(self.bucket_name, name)
-        self.assertRaises(S3OFSException, self.ofs.get_stream, self.bucket_name, name)
+        self.assertRaises(OFSException, self.ofs.get_stream, self.bucket_name, name)
         
     def test_meta_save_read(self):
         name = "my_data.txt"

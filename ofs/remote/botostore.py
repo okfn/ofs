@@ -11,23 +11,18 @@ except ImportError:
     import simplejson as json
 from datetime import datetime
 from tempfile import mkstemp
-from ofs.base import OFSInterface
+from ofs.base import OFSInterface, OFSException
 import boto
 import boto.exception
 
-
-class S3OFSException(Exception): pass
-
-class S3OFS(OFSInterface):
+class BotoOFS(OFSInterface):
     '''s3 backend for OFS.
     
     This is a simple S3 implementation of OFS that depends on the boto library.
     '''
     
-    def __init__(self, aws_access_key_id=None, aws_secret_access_key=None, **kwargs):
-        # assume external configuration at the moment. 
-        # http://code.google.com/p/boto/wiki/BotoConfig
-        self.conn = boto.connect_s3(aws_access_key_id, aws_secret_access_key, **kwargs)
+    def __init__(self, conn):
+        self.conn = conn
         self._bucket_cache = {}
     
     
@@ -40,7 +35,7 @@ class S3OFS(OFSInterface):
     def _require_bucket(self, bucket_name):
         """ Also try to create the bucket. """
         if not self.exists(bucket_name) and not self.claim_bucket(bucket_name):
-            raise S3OFSException("Invalid bucket: %s" % bucket_name)
+            raise OFSException("Invalid bucket: %s" % bucket_name)
         return self._get_bucket(bucket_name)
     
         
@@ -51,7 +46,7 @@ class S3OFS(OFSInterface):
     def _require_key(self, bucket, label):
         key = self._get_key(bucket, label)
         if key is None:
-            raise S3OFSException("%s->%s does not exist!" % (bucket.name, label))
+            raise OFSException("%s->%s does not exist!" % (bucket.name, label))
         return key
     
     
@@ -179,6 +174,20 @@ class S3OFS(OFSInterface):
             if _key in keys:
                 del key.metadata[_key] 
         key.close()
+
+class S3OFS(BotoOFS):
+    
+    def __init__(self, aws_access_key_id=None, aws_secret_access_key=None, **kwargs):
+        # assume external configuration at the moment. 
+        # http://code.google.com/p/boto/wiki/BotoConfig
+        conn = boto.connect_s3(aws_access_key_id, aws_secret_access_key, **kwargs)
+        super(S3OFS, self).__init__(conn)
+
+class GSOFS(BotoOFS):
+
+    def __init__(self, gs_access_key_id=None, gs_secret_access_key=None, **kwargs):
+        conn = boto.connect_gs(gs_access_key_id, gs_secret_access_key, **kwargs)
+        super(GSOFS, self).__init__(conn)    
 
 
 class ArchiveOrgOFS(S3OFS):

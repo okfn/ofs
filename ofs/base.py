@@ -1,3 +1,4 @@
+class OFSException(Exception): pass
 
 class OFSInterface(object):
     '''Abstract specification of OFS interface. Implementing backends *must*
