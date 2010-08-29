@@ -5,7 +5,10 @@ Boto will also be the refernce implementation for Google Storage, so only minor
 modifications would be required to support both GS and S3 through this module.
 '''
 import os
-import json
+try:
+    import json
+except ImportError:
+    import simplejson as json
 from datetime import datetime
 from tempfile import mkstemp
 from ofs.base import OFSInterface
