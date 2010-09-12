@@ -1,7 +1,7 @@
 '''This implements OFS backends for remote storage systems supported by the
 `Boto library <http://code.google.com/p/boto/`_ including S3 and archive.org.
 
-Boto will also be the refernce implementation for Google Storage, so only minor
+Boto will also be the reference implementation for Google Storage, so only minor
 modifications would be required to support both GS and S3 through this module.
 '''
 import os
