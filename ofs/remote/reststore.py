@@ -5,7 +5,7 @@ except ImportError:
     import simplejson as json
 from datetime import datetime
 from tempfile import mkstemp
-from urllib2 import Request, urlopen
+from urllib2 import Request, urlopen, HTTPError
 from urllib import urlencode
 from urlparse import urljoin
 from ofs.base import OFSInterface, OFSException
@@ -17,17 +17,18 @@ class MethodRequest(Request):
     def get_method(self):
         return self._method
 
+DEFAULT_HOST = 'http://repo.ckan.net'
 
 class RESTOFS(OFSInterface):
     
-    def __init__(self, host, http_user=None, http_pass=None):
+    def __init__(self, host=DEFAULT_HOST, http_user=None, http_pass=None):
         self.host = host.rstrip('/')
         self.http_user = http_user
         self.http_pass = http_pass
     
     def _multipart_encode(self, data, stream, label, content_type):
         body = []
-        for (key, value) in fields:
+        for (key, value) in data.items():
             body.append('--' + BOUNDARY)
             body.append('Content-Disposition: form-data; name="%s"' % key)
             body.append('')
@@ -36,10 +37,10 @@ class RESTOFS(OFSInterface):
         body.append('Content-Disposition: form-data; name="stream"; filename="%s"' % label)
         body.append('Content-Type: %s' % content_type)
         body.append('')
-        body.append(stream.read())
+        body.append(stream.read().decode('string_escape'))
         body.append('--' + BOUNDARY + '--')
         body.append('')
-        body = '\r\n'.join(body)
+        body = '\r\n'.join([t.decode('string_escape') for t in body])
         content_type = 'multipart/form-data; boundary=%s' % BOUNDARY
         return content_type, body
         
@@ -55,9 +56,13 @@ class RESTOFS(OFSInterface):
             http_headers['Authorization'] = http_auth
         if path.startswith('/'):
             path = urljoin(self.host, path)
-        req = MethodRequest(self, path, data, headers)
-        req._method = method
-        return urlopen(req)
+        try:
+            req = MethodRequest(path, data, headers)
+            req._method = method
+            return urlopen(req)
+        except HTTPError, he:
+            return he
+        
         
     def _request_json(self, path, data=None, headers={}, method='GET'):
         hdr = {'Accept': 'application/json',
@@ -68,25 +73,33 @@ class RESTOFS(OFSInterface):
         data = json.dumps(data) 
         urlfp = self._request(path, data=data, headers=hdr, method=method)
         try:
-            ret_data = json.loads(urlfp.read())
+            ret_data = urlfp.read()
+            try:
+                ret_data = json.loads(ret_data)
+            except ValueError:
+                raise OFSException(urlfp.msg)
             if isinstance(ret_data, dict) and 'error' in ret_data.keys():
                 raise OFSException(ret_data.get('message'))
             return ret_data
         finally:
             urlfp.close()
+            
+    def _del_bucket(self, bucket):
+        urlfp = self._request('/' + bucket, method='DELETE')
+        return urlfp.code < 400
     
     def exists(self, bucket, label=None):
         path = '/' + bucket
         if label is not None:
             path += '/' + label
-        urlfp = self._request(path, method='HEAD')
+        urlfp = self._request(path, method='GET')
         return urlfp.code < 400
     
     def claim_bucket(self, bucket):
         if self.exists(bucket):
             return False
         try:
-            self._request_json('/buckets', data={'bucket': bucket}, method='POST')
+            self._request_json('/', data={'bucket': bucket}, method='POST')
             return True
         except OFSException, ofse:
             return False
@@ -96,17 +109,21 @@ class RESTOFS(OFSInterface):
         return labels.keys()
     
     def list_buckets(self):
-        buckets = self._request_json('/buckets')
+        buckets = self._request_json('/')
         return buckets.keys()
     
     def get_stream(self, bucket, label, as_stream=True):
         urlfp = self._request('/' + bucket + '/' + label)
+        if urlfp.code >= 400:
+            raise OFSException(urlfp.read())
         if not as_stream:
-            return key.read()
-        return key
+            return urlfp.read()
+        return urlfp
     
     def put_stream(self, bucket, label, stream_object, params={}):
         content_type = params.get('_format', 'application/octet-stream')
+        params['_label'] = label
+        params['_bucket'] = bucket
         content_type, body = self._multipart_encode(params, stream_object, 
                                                     label, content_type)
         headers = {'Accept': 'application/json', 
@@ -117,7 +134,10 @@ class RESTOFS(OFSInterface):
         else:
             urlfp = self._request('/' + bucket, data=body, 
                                   headers=headers, method='POST')
-        ret_data = json.loads(urlfp.read())
+        try:
+            ret_data = json.loads(urlfp.read())
+        except ValueError:
+            raise OFSException(urlfp.msg)
         if 'error' in ret_data.keys():
             raise OFSException(ret_data.get('message'))
         
