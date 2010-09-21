@@ -1,5 +1,5 @@
 import random, unittest
-from ofs.remote import RESTOFS
+from ofs.remote.reststore import RESTOFS
 from ofs import OFSException
 from StringIO import StringIO
 

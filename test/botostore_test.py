@@ -1,5 +1,5 @@
 import random, unittest
-from ofs.remote import S3OFS, GSOFS
+from ofs.remote.botostore import S3OFS, GSOFS
 from ofs import OFSException
 from StringIO import StringIO
 
