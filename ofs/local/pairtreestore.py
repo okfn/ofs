@@ -8,6 +8,8 @@ from pairtree import PairtreeStorageClient
 from pairtree import id_encode, id_decode
 from pairtree import FileNotFoundException, ObjectNotFoundException
 
+from ofs.base import OFSInterface, OFSException
+
 from datetime import datetime
 
 from uuid import uuid4
@@ -15,7 +17,7 @@ from uuid import uuid4
 class OFSNotFound(Exception):
     pass
 
-class OFS(object):
+class OFS(OFSInterface):
     def __init__(self, storage_dir="data", uri_base="urn:uuid:", hashing_type="md5"):
         self.storage_dir = storage_dir
         self.uri_base = uri_base
@@ -39,12 +41,12 @@ class OFS(object):
         po = self._store.get_object(bucket)
         json_payload = PersistentState(po.id_to_dirpath())
         return (po, json_payload)
-    
+
     def _setup_item(self, bucket):
         _, json_payload = self._get_object(bucket)
         json_payload.sync()
     
-    def claim_a_bucket(self, bucket=None):
+    def claim_bucket(self, bucket=None):
         if not bucket or self.exists(bucket):
             bucket = uuid4().hex
             while(self.exists(bucket)):
@@ -101,6 +103,12 @@ class OFS(object):
                 return po.get_bytestream(label, streamable=as_stream, path=None, appendable=False)
         raise FileNotFoundException
 
+    def get_url(self, bucket, label):
+        if self.exists(bucket) and self.exists(bucket, label):
+            return self._store.get_url(bucket, label)
+        else:
+            raise FileNotFoundException
+    
     def get_metadata(self, bucket, label):
         if self.exists(bucket):
             _, json_payload = self._get_object(bucket)

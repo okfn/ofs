@@ -1,6 +1,11 @@
+from __future__ import with_statement
+
 from os import path
 
-import simplejson
+try:
+    import json
+except ImportError:
+    import simplejson as json
 
 PERSISTENCE_FILENAME="persisted_state.json"
 
@@ -30,7 +35,7 @@ class PersistentState(object):
             if path.isfile(self.filepath):
                 with open(self.filepath, "r") as serialised_file:
                     try:
-                        self.state = simplejson.load(serialised_file)
+                        self.state = json.load(serialised_file)
                     except ValueError:
                         print "No JSON information could be read from the persistence file - could be empty: %s" % self.filepath
                         self.state = {}
@@ -44,7 +49,7 @@ class PersistentState(object):
         """Synchronise and update the stored state to the in-memory state."""
         if self.filepath:
             with open(self.filepath, "w") as serialised_file:
-                simplejson.dump(self.state, serialised_file)
+                json.dump(self.state, serialised_file)
         else:
             print "Filepath to the persistence file is not set. State cannot be synced to disc."
 
