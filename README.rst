@@ -54,6 +54,14 @@ Example Usage
     >>> o.put_stream(bucket_id, "foooo", "asidaisdiasjdiajsidjasidji", params={"original_uri":"http://...."})
     {'_label': 'foooo', 'original_uri': 'http://....', '_last_modified': '2010-08-02T11:39:11', '_checksum': 'md5:3d690d7e0f4479c5a7038b8a4572d0fe', '_creation_date': '2010-08-02T11:39:11', '_content_length': 26}
 
+    # Get the underlying URL pointing to a resource
+    >>> o.get_url(bucket_id, "foo")
+      [typical local pairtree response:]
+   "file:///opt/ofs_store/pairtree_root/1b/f9/32/......./obj/foo"
+      [typical remote response]
+   "http://..."
+   "ftp://..."
+
     # adding to existing metadata:
     >>> o.update_metadata(bucket_id, "foooo", {'foo':'bar'})
     {'_label': 'foooo', 'original_uri': 'http://....', '_last_modified': '2010-08-02T11:39:11', '_checksum': 'md5:3d690d7e0f4479c5a7038b8a4572d0fe', '_creation_date': '2010-08-02T11:39:11', '_content_length': 26, 'foo': 'bar'}
