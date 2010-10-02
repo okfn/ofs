@@ -95,6 +95,14 @@ class BotoOFS(OFSInterface):
             return key.get_contents_as_string()
         return key
     
+    
+    def get_url(self, bucket, label):
+        bucket = self._require_bucket(bucket)
+        key = self._require_key(bucket, label)
+        key.make_public()
+        # expire can be negative when data is public
+        return key.generate_url(-1) 
+    
 
     def put_stream(self, bucket, label, stream_object, params={}):
         bucket = self._require_bucket(bucket)

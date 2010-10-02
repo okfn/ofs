@@ -119,6 +119,10 @@ class RESTOFS(OFSInterface):
         if not as_stream:
             return urlfp.read()
         return urlfp
+        
+    def get_url(self, bucket, label):
+        urlfp = self._request('/' + bucket + '/' + label)
+        return urlfp.url
     
     def put_stream(self, bucket, label, stream_object, params={}):
         content_type = params.get('_format', 'application/octet-stream')
