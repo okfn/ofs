@@ -4,9 +4,9 @@ It provides a common API for doing storing bitstreams (+ a bit of related
 metadata) in 'bucket/object' stores such as:
 
   * Filesystem (+ pairtree)
-  * S3
-  * Archive.org
-  * Riak (in progress)
+  * S3-compatible: S3, Google Storage, Eucalytus, Archive.org
+  * Riak (buggy)
+  * 'REST' Store (see remote/reststore.py - implementation at http://bitbucket.org/pudo/repod/)
   * **add a backend here**
 
 Why use the library:
