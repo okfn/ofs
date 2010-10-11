@@ -17,11 +17,11 @@ class TestPairtreeOFS(unittest.TestCase):
         pass
     
     def test_claim_bucket(self):
-        a = self.o.claim_a_bucket()
+        a = self.o.claim_bucket()
         self.assertTrue(self.o.exists(a))
     
     def test_store_bytes_no_params(self):
-        a = self.o.claim_a_bucket()
+        a = self.o.claim_bucket()
         label = "foo.txt"
         b = self.o.put_stream(a, label, "Some bytes to store")
         self.assertEquals(b['_label'], "foo.txt")
@@ -29,7 +29,7 @@ class TestPairtreeOFS(unittest.TestCase):
         self.assertEquals(b['_checksum'], 'md5:eee89bbbcf416f658c7bc18cd8f2b61d')
     
     def test_store_bytes_with_params(self):
-        a = self.o.claim_a_bucket()
+        a = self.o.claim_bucket()
         label = "foo.txt"
         b = self.o.put_stream(a, label, "Some bytes to store", {"a":"1", "b":[1,2,3,4,5]})
         self.assertEquals(b['a'], "1")
@@ -39,7 +39,7 @@ class TestPairtreeOFS(unittest.TestCase):
         self.assertEquals(b['_checksum'], 'md5:eee89bbbcf416f658c7bc18cd8f2b61d')
     
     def test_store_params_after_bytes(self):
-        a = self.o.claim_a_bucket()
+        a = self.o.claim_bucket()
         label = "foo.txt"
         self.o.put_stream(a, label, "Some bytes to store")
         b = self.o.update_metadata(a, label, {"a":"1", "b":[1,2,3,4,5]})
@@ -47,7 +47,7 @@ class TestPairtreeOFS(unittest.TestCase):
         self.assertEquals(b['b'], [1,2,3,4,5])
         
     def test_params_persistence(self):
-        a = self.o.claim_a_bucket()
+        a = self.o.claim_bucket()
         label = "foo.txt"
         self.o.put_stream(a, label, "Some bytes to store", {"a":"1", "b":[1,2,3,4,5]})
         b = self.o.get_metadata(a, label)        
@@ -55,7 +55,7 @@ class TestPairtreeOFS(unittest.TestCase):
         self.assertEquals(b['b'], [1,2,3,4,5])
         
     def test_params_deletion(self):
-        a = self.o.claim_a_bucket()
+        a = self.o.claim_bucket()
         label = "foo.txt"
         self.o.put_stream(a, label, "Some bytes to store", {"a":"1", "b":[1,2,3,4,5]})
         self.o.remove_metadata_keys(a, label, ['b'])
