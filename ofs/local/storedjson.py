@@ -50,7 +50,7 @@ class PersistentState(object):
     def sync(self):
         """Synchronise and update the stored state to the in-memory state."""
         if self.filepath:
-            serialised_file = open(self.filepath, "r")
+            serialised_file = open(self.filepath, "w")
             json.dump(self.state, serialised_file)
             serialised_file.close()
         else:
