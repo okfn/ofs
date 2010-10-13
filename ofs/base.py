@@ -1,5 +1,7 @@
 class OFSException(Exception): pass
 
+class BucketExists(OFSException): pass
+
 class OFSInterface(object):
     '''Abstract specification of OFS interface. Implementing backends *must*
     implement at least this interface.

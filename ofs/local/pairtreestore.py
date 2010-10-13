@@ -8,7 +8,7 @@ from pairtree import PairtreeStorageClient
 from pairtree import id_encode, id_decode
 from pairtree import FileNotFoundException, ObjectNotFoundException
 
-from ofs.base import OFSInterface, OFSException
+from ofs.base import OFSInterface, OFSException, BucketExists
 
 from datetime import datetime
 
@@ -18,17 +18,18 @@ class OFSNotFound(Exception):
     pass
 
 class OFS(OFSInterface):
-    def __init__(self, storage_dir="data", uri_base="urn:uuid:", hashing_type="md5"):
+    def __init__(self, storage_dir="data", uri_base="urn:uuid:", hashing_type="md5", shorty_length=2):
         self.storage_dir = storage_dir
         self.uri_base = uri_base
         self.hashing_type = hashing_type
+        self.shorty_length = shorty_length
         self._open_store()
     
     def _open_store(self):
         if self.hashing_type:
-            self._store = PairtreeStorageClient(self.uri_base, self.storage_dir, shorty_length=2, hashing_type=self.hashing_type)
+            self._store = PairtreeStorageClient(self.uri_base, self.storage_dir, shorty_length=self.shorty_length, hashing_type=self.hashing_type)
         else:
-            self._store = PairtreeStorageClient(self.uri_base, self.storage_dir, shorty_length=2)
+            self._store = PairtreeStorageClient(self.uri_base, self.storage_dir, shorty_length=shorty_length)
 
     def exists(self, bucket, label=None):
         if self._store.exists(bucket):
@@ -47,7 +48,10 @@ class OFS(OFSInterface):
         json_payload.sync()
     
     def claim_bucket(self, bucket=None):
-        if not bucket or self.exists(bucket):
+        if bucket:
+            if self.exists(bucket):
+                raise BucketExists
+        else:
             bucket = uuid4().hex
             while(self.exists(bucket)):
                 bucket = uuid4().hex
