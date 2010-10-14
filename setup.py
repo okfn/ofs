@@ -18,7 +18,7 @@ setup(
     s3 = ofs.remote.botostore:S3OFS
     google = ofs.remote.botostore:GSOFS
     archive.org = ofs.remote.botostore:ArchiveOrgOFS
-    rest = ofs.remote.reststore:RESTOFS
+    reststore = ofs.remote.reststore:RESTOFS
     """
     )
 
