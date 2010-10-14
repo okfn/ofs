@@ -2,14 +2,23 @@ from ez_setup import use_setuptools
 use_setuptools()
 from setuptools import setup, find_packages
 
+try:
+    fo = open('README.rst')
+    long_description = fo.read()
+except:
+    long_description="""OFS - provides plugin-orientated low-level blobstore. """,
+finally:
+    fo.close()
+
 setup(
-    name="OFS",
+    name="ofs",
     version="0.1",
     description="OFS - provides plugin-orientated low-level blobstore.",
-    long_description="""OFS - provides plugin-orientated low-level blobstore. """,
-    maintainer="Ben O'Steen",
-    maintainer_email="bosteen@gmail.com",
+    long_description=long_description,
+    author="Ben O'Steen, Friedrich Lindenberg, Rufus Pollock",
+    author_email="bosteen@gmail.com",
     license="http://www.apache.org/licenses/LICENSE-2.0",
+    url="http://bitbucket.org/okfn/ofs",
     packages=find_packages(),
     test_suite = "test.test.TestPairtreeOFS",
     entry_points="""
