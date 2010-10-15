@@ -129,7 +129,7 @@ class ZOFS(OFSInterface):
         for name in self.z.namelist():
             if name.startswith("%s/" % (ppath.id_encode(bucket))) and not name.endswith(MD_FILE):
                 _, label = self._nf(name)
-                 yield label
+                yield label
     
     def list_buckets(self):
         '''List all buckets managed by this OFS instance. Like list_labels, this also
@@ -191,7 +191,7 @@ class ZOFS(OFSInterface):
             fn = self._zf(bucket, label)
             params['_creation_date'] = datetime.now().isoformat().split(".")[0]  ## '2010-07-08T19:56:47'
             params['label'] = label
-            if self.exists(bucket, label) and replace=True:
+            if self.exists(bucket, label) and replace==True:
                 # Add then Replace? Let's see if that works...
                 #z = ZipFile(self.zipfile, self.mode, self.compression, self.allowZip64)
                 

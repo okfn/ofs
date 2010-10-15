@@ -3,7 +3,7 @@ import random, unittest, re
 
 import shutil
 
-from ofs.local import PTOFS
+from ofs.local import MDOFS
 
 class TestPairtreeOFS(unittest.TestCase):
    

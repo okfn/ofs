@@ -17,7 +17,7 @@ from uuid import uuid4
 class OFSNotFound(Exception):
     pass
 
-class OFS(OFSInterface):
+class PTOFS(OFSInterface):
     def __init__(self, storage_dir="data", uri_base="urn:uuid:", hashing_type="md5", shorty_length=2):
         self.storage_dir = storage_dir
         self.uri_base = uri_base
