@@ -5,9 +5,7 @@ from __future__ import with_statement
 
 from storedjson import PersistentState
 
-from pairtree import PairtreeStorageClient
-from pairtree import id_encode, id_decode
-from pairtree import FileNotFoundException, ObjectNotFoundException
+from pairtreestore import PTOFS
 
 from ofs.base import OFSInterface, OFSFileNotFound, BucketExists, OFSException
 
@@ -50,10 +48,12 @@ class MDOFS(OFSInterface):
         self._open_store()
     
     def _open_store(self):
-        if self.hashing_type:
-            self._store = PairtreeStorageClient(self.uri_base, self.storage_dir, shorty_length=self.shorty_length, hashing_type=self.hashing_type)
-        else:
-            self._store = PairtreeStorageClient(self.uri_base, self.storage_dir, shorty_length=shorty_length)
+        self._ptstore = PTOFS(self.storage_dir, self.uri_base, self.hashing_type, self.shorty_length)
+    
+    def _toptid(self, bucket):
+        ptid = bucket[:-self.tail]
+        frag = bucket[len(bucket)-self.tail:]
+        return ptid, frag
     
     def _topt(self, bucket, label):
         ptid = bucket[:-self.tail]
@@ -64,19 +64,41 @@ class MDOFS(OFSInterface):
         frag, label = fn.rsplit(self.fsep,1)
         return (ptid+frag, label)
     
-    def exists(bucket, label):
+    def exists(self, bucket, label=None):
         '''Whether a given bucket:label object already exists.
 
         :return: bool.
         '''
-        raise NotImplementedError
+        if label:
+            ptid, fn = self._toptid(bucket, label)
+            return self._ptstore.exists(ptid, fn)
+        else:
+            ptid, prefix = self._toptid(bucket)
+            return self._ptstore.exists(ptid)
+            #  Following works only if a file has been stored
+            #  in  a given bucket
+            #
+            #labels = self._ptstore.list_labels(ptid)
+            #if labels:
+            #    for item in labels:
+            #        if item.startswith(prefix):
+            #            return True
+            #return False
 
-    def claim_bucket(self, bucket):
+    def claim_bucket(self, bucket=None):
         '''Claim a bucket.
 
         :return: True if successful, False otherwise.
         '''
-        raise NotImplementedError
+        
+        if not bucket:
+            bucket = uuid4().hex
+            while(self.exists(bucket)):
+                bucket = uuid4().hex
+        ptid, _ = self._toptid(bucket)
+        r_id = self._ptstore.claim_bucket(ptid)
+        return bucket
+        
 
     def list_labels(self, bucket):
         '''List labels for the given bucket.
@@ -84,22 +106,33 @@ class MDOFS(OFSInterface):
         :param bucket: bucket to list labels for.
         :return: iterator for the labels in the specified bucket.
         '''
-        raise NotImplementedError
+        ptid, prefix = self._toptid(bucket)
+        for item in self._ptstore.list_labels(ptid):
+            if item.startswith(prefix):
+                _, label = self._frompt(ptid, item)
+                yield label
     
     def list_buckets(self):
         '''List all buckets managed by this OFS instance.
         
         :return: iterator for the buckets.
         '''
-        raise NotImplementedError
-
+        b_set = set()
+        for ptid in self._ptstore.list_buckets():
+            for item in self._ptstore.list_labels(ptid):
+                bucket, label = self._frompt(ptid, item)
+                if bucket not in b_set:
+                    b_set.add(bucket)
+                    yield bucket
+        
     def get_stream(self, bucket, label, as_stream=True):
         '''Get a bitstream for the given bucket:label combination.
 
         :param bucket: the bucket to use.
         :return: bitstream as a file-like object 
         '''
-        raise NotImplementedError
+        ptid, fn = self._topt(bucket, label)
+        return self._ptstore.get_stream(ptid, fn, as_stream)
 
     def get_url(self, bucket, label):
         '''Get a URL that should point at the bucket:labelled resource. Aimed to aid web apps by allowing them to redirect to an open resource, rather than proxy the bitstream.
@@ -108,7 +141,8 @@ class MDOFS(OFSInterface):
         :param label: the label of the resource to get
         :return: a string URL - NB 'file:///...' is a resource on the locally mounted systems.
         '''
-        raise NotImplementedError
+        ptid, fn = self._topt(bucket, label)
+        return self._ptstore.get_url(ptid, fn)
 
     def put_stream(self, bucket, label, stream_object, params={}):
         '''Put a bitstream (stream_object) for the specified bucket:label identifier.
@@ -118,27 +152,33 @@ class MDOFS(OFSInterface):
         :param stream_object: file-like object to read from.
         :param params: update metadata with these params (see `update_metadata`)
         '''
-        raise NotImplementedError
+        ptid, fn = self._topt(bucket, label)
+        params['_label'] = label
+        return self._ptstore.put_stream(ptid, fn, stream_object, params)
 
     def del_stream(self, bucket, label):
         '''Delete a bitstream.
         '''
-        raise NotImplementedError
-
+        ptid, fn = self._topt(bucket, label)
+        return self._ptstore.del_stream(ptid, fn)
+        
     def get_metadata(self, bucket, label):
         '''Get the metadata for this bucket:label identifier.
         '''
-        raise NotImplementedError
+        ptid, fn = self._topt(bucket, label)
+        return self._ptstore.get_metadata(ptid, fn)
 
     def update_metadata(self, bucket, label, params):
         '''Update the metadata with the provided dictionary of params.
 
         :param parmams: dictionary of key values (json serializable).
         '''
-        raise NotImplementedError
+        ptid, fn = self._topt(bucket, label)
+        return self._ptstore.update_metadata(ptid, fn, params)
 
     def del_metadata_keys(self, bucket, label, keys):
         '''Delete the metadata corresponding to the specified keys.
         '''
-        raise NotImplementedError
+        ptid, fn = self._topt(bucket, label)
+        return self._ptstore.del_metadata_keys(ptid, fn, keys)
 

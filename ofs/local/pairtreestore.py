@@ -76,7 +76,10 @@ class PTOFS(OFSInterface):
         else:
             # New upload - record creation date
             creation_date = datetime.now().isoformat().split(".")[0]  ## '2010-07-08T19:56:47'
-            json_payload[label] = {"_label":label}
+            if params.has_key('_label'):
+                json_payload[label] = {"_label":params['_label']}
+            else:
+                json_payload[label] = {"_label":label}
 
         hash_vals = po.add_bytestream_by_path(label, stream_object)
         stat_vals = po.stat(label)
@@ -131,7 +134,7 @@ class PTOFS(OFSInterface):
         else:
             raise FileNotFoundException
     
-    def remove_metadata_keys(self, bucket, label, keys):
+    def del_metadata_keys(self, bucket, label, keys):
         if self.exists(bucket, label) and isinstance(keys, list):
             _, json_payload = self._get_object(bucket)
             for key in [x for x in keys if not x.startswith("_")]:
