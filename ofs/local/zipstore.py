@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: UTF-8 -*-
+
 from ofs.local.zipfile import ZipFile, BadZipfile, LargeZipFile, ZIP_STORED, ZIP_DEFLATED, is_zipfile
 
 from ofs.base import BucketExists, OFSException, OFSInterface, OFSFileNotFound
@@ -9,6 +12,8 @@ import hashlib
 from datetime import datetime
 
 from tempfile import mkstemp
+
+from uuid import uuid4
 
 import os
 
@@ -32,17 +37,18 @@ class ZOFS(OFSInterface):
 
     This is stored in the metadata/ 'folder' - same filename as the original bucket it describes.
     '''
-    def __init__(self, zipfile, mode="r", compression=ZIP_STORED, allowZip64=False, hashing_type="md5"):
+    def __init__(self, zipfile, mode="r", compression=ZIP_STORED, allowZip64=False, hashing_type="md5", quiet=False):
         """Open the ZOFS ZIP file archive with mode read "r", write "w" or append "a"."""
         if mode not in ("r", "w", "a"):
             raise RuntimeError('ZOFS() requires mode "r", "w", or "a" (due to underlying ZipFile class)')
-        if mode in ("w", "a"):
+        if mode in ("w", "a") and not quiet:
             print "IMPORTANT: You MUST .close() this ZOFS instance for it to write the ending records in '%s' mode. Otherwise the resultant zip archive will be unreadable." % mode
         self.zipfile = zipfile
         self.mode = mode
         self.compression = compression
         self.allowZip64 = allowZip64
         self.hashing_type = hashing_type
+        self.quiet = quiet
         if mode == "r" and not is_zipfile(zipfile):
             raise BadZipArchive, e
         try:
@@ -113,10 +119,15 @@ class ZOFS(OFSInterface):
         except KeyError:
             return False
 
-    def claim_bucket(self, bucket):
+    def claim_bucket(self, bucket=None):
         '''Claim a bucket. -- This is a NOOP as the bucket is a virtual folder 
-        in the zipfile and does not exist without files it 'contains'.'''
-        pass
+        in the zipfile and does not exist without files it 'contains'.
+        
+        Called without a 'bucket' it will respond with a uuid.'''
+        if bucket:
+            return bucket
+        else:
+            return uuid4().hex
 
     def list_labels(self, bucket):
         '''List labels for the given bucket. Due to zipfiles inherent arbitrary ordering,
@@ -127,8 +138,8 @@ class ZOFS(OFSInterface):
         :return: iterator for the labels in the specified bucket.
         '''
         for name in self.z.namelist():
-            if name.startswith("%s/" % (ppath.id_encode(bucket))) and not name.endswith(MD_FILE):
-                _, label = self._nf(name)
+            container, label = self._nf(name.encode("utf-8"))
+            if container == bucket and label != MD_FILE:
                 yield label
     
     def list_buckets(self):
@@ -190,27 +201,39 @@ class ZOFS(OFSInterface):
         else:
             fn = self._zf(bucket, label)
             params['_creation_date'] = datetime.now().isoformat().split(".")[0]  ## '2010-07-08T19:56:47'
-            params['label'] = label
+            params['_label'] = label
             if self.exists(bucket, label) and replace==True:
                 # Add then Replace? Let's see if that works...
                 #z = ZipFile(self.zipfile, self.mode, self.compression, self.allowZip64)
-                
                 zinfo = self.z.getinfo(fn)
-                size, cksum = self._write(self.z, bucket, label, stream_object)
-                self.z.remove(zinfo)
+                size, chksum = self._write(self.z, bucket, label, stream_object)
+                self._del_stream(zinfo)
                 #z.close()
                 params['_content_length'] = size
                 if chksum:
-                    params['_checksum'] = cksum
+                    params['_checksum'] = chksum
             else:
                 #z = ZipFile(self.zipfile, self.mode, self.compression, self.allowZip64)
-                size, cksum = self._write(self.z, bucket, label, stream_object)
+                size, chksum = self._write(self.z, bucket, label, stream_object)
                 #z.close()
                 params['_content_length'] = size
                 if chksum:
-                    params['_checksum'] = cksum
+                    params['_checksum'] = chksum
             if add_md:
-                self.update_metadata(bucket, label, params)
+                params = self.update_metadata(bucket, label, params)
+            return params
+    
+    def _del_stream(self, zinfo):
+        print "DELETE DISABLED... until I can get it working..."
+        pass
+        #if self.mode == "a":
+        #    self.z.close()
+        #    self.z = ZipFile(self.zipfile, "w", self.compression, self.allowZip64)
+        #self.z.remove(zinfo)
+        #if self.mode == "a":
+        #    self.z.close()
+        #    self.z = ZipFile(self.zipfile, self.mode, self.compression, self.allowZip64)
+        
     
     def del_stream(self, bucket, label):
         '''Delete a bitstream. This needs more testing - file deletion in a zipfile
@@ -220,7 +243,7 @@ class ZOFS(OFSInterface):
         if self.exists(bucket, label):
             name = self._zf(bucket, label)
             #z = ZipFile(self.zipfile, self.mode, self.compression, self.allowZip64)
-            self.z.remove(name)
+            self._del_stream(name)
             #z.close()
     
     def _get_bucket_md(self, bucket):
@@ -229,7 +252,7 @@ class ZOFS(OFSInterface):
             raise OFSFileNotFound
         if self.mode !="w":
             #z = ZipFile(self.zipfile, "r", self.compression, self.allowZip64)
-            json_doc = z.read(name)
+            json_doc = self.z.read(name)
             #z.close()
             try:
                 jsn = json.loads(json_doc)
@@ -270,12 +293,16 @@ class ZOFS(OFSInterface):
                 payload = {}
                 for l in self.list_labels(bucket):
                     payload[l] = {}
-                    payload[l]['label'] = l
-                print "Had to create md file for %s" % bucket
+                    payload[l]['_label'] = l
+                if not self.quiet:
+                    print "Had to create md file for %s" % bucket
             except OFSException, e:
                 raise OFSException, e
+            if not payload.has_key(label):
+                payload[label] = {}
             payload[label].update(params)
             self.put_stream(bucket, MD_FILE, json.dumps(payload), params={}, replace=True, add_md=False)
+            return payload[label]
         else:
             raise OFSException, "Cannot update MD in archive in 'r' mode"
             
