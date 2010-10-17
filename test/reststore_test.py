@@ -2,8 +2,10 @@ import random, unittest
 from ofs.remote.reststore import RESTOFS
 from ofs import OFSException
 from StringIO import StringIO
+import os
 
 TEST_TEXT = """I am a banana"""
+BINARY_FILE_NAME = os.path.join(os.path.dirname(__file__), 'binary.data')
 
 class TestRESTOFS(unittest.TestCase):
         
@@ -46,6 +48,12 @@ class TestRESTOFS(unittest.TestCase):
         assert text == TEST_TEXT, text
         text = self.ofs.get_stream(self.bucket_name, name, as_stream=False)
         assert text == TEST_TEXT, text
+        
+    def test_binary_write_and_read(self):
+        name = "binary.data"
+        fh = file(BINARY_FILE_NAME, 'rb')
+        self.ofs.put_stream(self.bucket_name, name, fh)
+        fh.close()
         
     def test_stream_delete(self):
         name = "my_data.txt"

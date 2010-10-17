@@ -36,11 +36,12 @@ class RESTOFS(OFSInterface):
         body.append('--' + BOUNDARY)
         body.append('Content-Disposition: form-data; name="stream"; filename="%s"' % label)
         body.append('Content-Type: %s' % content_type)
+        body.append('Content-Transfer-Encoding: binary')
         body.append('')
-        body.append(stream.read().decode('string_escape'))
+        body.append(stream.read())
         body.append('--' + BOUNDARY + '--')
         body.append('')
-        body = '\r\n'.join([t.decode('string_escape') for t in body])
+        body = '\r\n'.join([t for t in body])
         content_type = 'multipart/form-data; boundary=%s' % BOUNDARY
         return content_type, body
         
