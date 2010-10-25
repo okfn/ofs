@@ -58,7 +58,7 @@ class TestPairtreeOFS(unittest.TestCase):
         a = self.o.claim_bucket()
         label = "foo.txt"
         self.o.put_stream(a, label, "Some bytes to store", {"a":"1", "b":[1,2,3,4,5]})
-        self.o.remove_metadata_keys(a, label, ['b'])
+        self.o.del_metadata_keys(a, label, ['b'])
         b = self.o.get_metadata(a, label)     
         self.assertEquals(b['a'], "1")
         self.assertFalse(b.has_key('b'))
