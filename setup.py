@@ -23,7 +23,7 @@ setup(
     test_suite = "test.test.TestPairtreeOFS",
     entry_points="""
     [ofs.backend]
-    pairtree = ofs.local.pairtreestore:OFS
+    pairtree = ofs.local.pairtreestore:PTOFS
     s3 = ofs.remote.botostore:S3OFS
     google = ofs.remote.botostore:GSOFS
     archive.org = ofs.remote.botostore:ArchiveOrgOFS
