@@ -24,6 +24,7 @@ setup(
     entry_points="""
     [ofs.backend]
     pairtree = ofs.local.pairtreestore:PTOFS
+    mdpairtree= ofs.local.metadatastore:MDOFS
     s3 = ofs.remote.botostore:S3OFS
     google = ofs.remote.botostore:GSOFS
     archive.org = ofs.remote.botostore:ArchiveOrgOFS
