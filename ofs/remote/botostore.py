@@ -110,7 +110,7 @@ class BotoOFS(OFSInterface):
         if key is None:
             key = bucket.new_key(label)
             if not '_creation_time' in params:
-                params['_creation_time'] = str(datetime.now())
+                params['_creation_time'] = str(datetime.utcnow())
         
         if not '_checksum' in params:
             params['_checksum'] = 'md5:' + key.compute_md5(stream_object)[0]
