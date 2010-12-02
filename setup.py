@@ -21,6 +21,7 @@ setup(
     url="http://bitbucket.org/okfn/ofs",
     packages=find_packages(),
     test_suite = "test.test.TestPairtreeOFS",
+    install_Requires = ["argparse"],
     entry_points="""
     [ofs.backend]
     pairtree = ofs.local.pairtreestore:PTOFS
@@ -29,6 +30,9 @@ setup(
     google = ofs.remote.botostore:GSOFS
     archive.org = ofs.remote.botostore:ArchiveOrgOFS
     reststore = ofs.remote.reststore:RESTOFS
+
+    [console_scripts]
+    ofs_upload = ofs.command:ofs
     """
     )
 
