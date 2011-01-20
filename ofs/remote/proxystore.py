@@ -23,7 +23,7 @@ class S3Bounce(OFSInterface):
 
     def put_stream(self, bucket, label, fp, metadata={}, cb=None, num_cb=None):
         if metadata is None:
-            metadata = { "changed_by": getpass.getuser()}
+            metadata = { "_owner": getpass.getuser()}
 
         path = "/" + bucket + "/" + label
 
@@ -109,6 +109,6 @@ class S3Bounce(OFSInterface):
                                  
         awsc._mexe('PUT', path, None, headers, sender=sender)
 
-        metadata = self.ckan.storage_metadata_get(path)
+        metadata = self.ckan.storage_metadata_update(path, {})
         from pprint import pprint
         pprint(metadata)
