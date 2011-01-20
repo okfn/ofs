@@ -179,7 +179,9 @@ class OFS(argparse.ArgumentParser):
                 #    response.status, response.reason, body)
                 raise Exception(response.status, response.reason, body)
 
-        awsc = AWSAuthConnection(host)
+        awsc = AWSAuthConnection(host,
+                                 aws_access_key_id="key_id",
+                                 aws_secret_access_key="secret")
         awsc._mexe('PUT', path, None, headers, sender=sender)
 
 def ofs():

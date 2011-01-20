@@ -197,7 +197,6 @@ class GSOFS(BotoOFS):
         conn = boto.connect_gs(gs_access_key_id, gs_secret_access_key, **kwargs)
         super(GSOFS, self).__init__(conn)    
 
-
 class ArchiveOrgOFS(S3OFS):
     '''An archive.org backend utilizing the archive.org s3 interface (see:
     http://www.archive.org/help/abouts3.txt).

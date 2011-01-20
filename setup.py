@@ -28,6 +28,7 @@ setup(
     mdpairtree= ofs.local.metadatastore:MDOFS
     s3 = ofs.remote.botostore:S3OFS
     google = ofs.remote.botostore:GSOFS
+    s3bounce = ofs.remote.proxystore:S3Bounce
     archive.org = ofs.remote.botostore:ArchiveOrgOFS
     reststore = ofs.remote.reststore:RESTOFS
 
