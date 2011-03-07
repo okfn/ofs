@@ -21,7 +21,7 @@ setup(
     url="http://bitbucket.org/okfn/ofs",
     packages=find_packages(),
     test_suite = "test.test.TestPairtreeOFS",
-    install_Requires = ["argparse"],
+    install_requires = ["argparse"],
     entry_points="""
     [ofs.backend]
     pairtree = ofs.local.pairtreestore:PTOFS
