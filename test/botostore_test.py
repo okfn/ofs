@@ -13,9 +13,9 @@ class TestS3OFS(unittest.TestCase):
         
     def setUp(self):
         self.bucket_name = 'ofs-test-bucket'
-        keyid = cfg.get('ofs', 'ofs.gs_access_key_id')
-        secret = cfg.get('ofs', 'ofs.gs_secret_access_key')
-        self.ofs = GSOFS(keyid, secret)
+        keyid = cfg.get('ofs', 'ofs.aws_access_key_id')
+        secret = cfg.get('ofs', 'ofs.aws_secret_access_key')
+        self.ofs = S3OFS(keyid, secret)
         self.s3bucket = self.ofs.conn.create_bucket(self.bucket_name)
     
     def tearDown(self):
@@ -85,7 +85,7 @@ class TestS3OFS(unittest.TestCase):
         self.ofs.update_metadata(self.bucket_name, name, {'hello': 'mars', 
                                                           'foo': 'qux'})
         meta = self.ofs.get_metadata(self.bucket_name, name)
-        print meta
+        print 'XXX', meta
         assert meta['hello'] == 'mars', meta['hello']
         assert meta['foo'] == 'qux', meta['bar']
         
@@ -106,6 +106,15 @@ class TestS3OFS(unittest.TestCase):
         out = self.ofs.authenticate_request('GET', 'abc', 'xyz', headers)
         assert out.headers['Content-MD5'] == headers['Content-MD5']
 
+class TestGSOFS(TestS3OFS):
+        
+    def setUp(self):
+        self.bucket_name = 'ofs-test-bucket'
+        keyid = cfg.get('ofs', 'ofs.gs_access_key_id')
+        secret = cfg.get('ofs', 'ofs.gs_secret_access_key')
+        self.ofs = GSOFS(keyid, secret)
+        self.s3bucket = self.ofs.conn.create_bucket(self.bucket_name)
+    
 
 if __name__ == '__main__':
     unittest.main()
