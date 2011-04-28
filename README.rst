@@ -14,10 +14,11 @@ Why use the library:
   * Abstraction: write common code but use different storage backends
   * More than a filesystem, less than a database - support for metadata as well
     bitstreams
-  * Extra features:
 
-      * Sharding - automatic sharding of files to support distributed file-system like structure (planned)
+Requirements
+============
 
+For all boto-based stores (Google Storage, S3 etc) require boto>=2.0.
 
 Example Usage
 =============
@@ -86,4 +87,12 @@ Example Usage
     4aaa43cdf5ba44e2ad25acdbd1cf2f70
     .... etc
 
+
+Developer
+=========
+
+Tests use plain unittest but recommend using nose.
+
+To run the botostore tests you'll need to copy test.ini.tmpl to test.ini and
+put in details for a google storage account.
 

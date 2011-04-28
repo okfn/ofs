@@ -1,3 +1,4 @@
 syntax: glob
 *.egg-info
 *.pyc
+test.ini

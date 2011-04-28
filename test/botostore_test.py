@@ -2,14 +2,20 @@ import random, unittest
 from ofs.remote.botostore import S3OFS, GSOFS
 from ofs import OFSException
 from StringIO import StringIO
+from ConfigParser import SafeConfigParser
 
 TEST_TEXT = """I am a banana"""
+
+cfg = SafeConfigParser()
+cfg.readfp(open('test.ini'))
 
 class TestS3OFS(unittest.TestCase):
         
     def setUp(self):
         self.bucket_name = 'ofs-test-bucket'
-        self.ofs = GSOFS()
+        keyid = cfg.get('ofs', 'ofs.gs_access_key_id')
+        secret = cfg.get('ofs', 'ofs.gs_secret_access_key')
+        self.ofs = GSOFS(keyid, secret)
         self.s3bucket = self.ofs.conn.create_bucket(self.bucket_name)
     
     def tearDown(self):
