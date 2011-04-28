@@ -12,7 +12,7 @@ finally:
 
 setup(
     name="ofs",
-    version="0.3.1",
+    version="0.4",
     description="OFS - provides plugin-orientated low-level blobstore.",
     long_description=long_description,
     author="Ben O'Steen, Friedrich Lindenberg, Rufus Pollock",

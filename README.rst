@@ -96,3 +96,29 @@ Tests use plain unittest but recommend using nose.
 To run the botostore tests you'll need to copy test.ini.tmpl to test.ini and
 put in details for a google storage account.
 
+
+Changelog
+=========
+
+v0.4: 2011-04-28
+----------------
+
+  * New authenticate_request method for boto based backends.
+
+v0.3: 2011-01-20
+----------------
+
+  * S3Bounce backend (use authorization credentials from CKAN).
+  * Use setuptools plugins with ofs.backend to allow for 3rd party backends
+  * ofs_upload command
+
+v0.2: 2010-11-20
+----------------
+
+  * Google Storage support.
+  * REST store
+
+v0.1: 2010-10-14
+----------------
+
+  * Initial implemenation with PairTree and S3
