@@ -95,6 +95,16 @@ class TestS3OFS(unittest.TestCase):
         meta = self.ofs.get_metadata(self.bucket_name, name)
         assert meta['_format'] == 'application/x.banana', meta['_format']
         assert meta['_content_length'] == len(TEST_TEXT), meta['_content_length']
+    
+    def test_authenticate_request(self):
+        out = self.ofs.authenticate_request('POST', 'abc', 'xyz')
+        assert out.headers['Authorization'], out
+
+        headers = {
+            'Content-MD5': 'afjkadj'
+            }
+        out = self.ofs.authenticate_request('GET', 'abc', 'xyz', headers)
+        assert out.headers['Content-MD5'] == headers['Content-MD5']
 
 
 if __name__ == '__main__':

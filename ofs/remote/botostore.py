@@ -14,6 +14,7 @@ from tempfile import mkstemp
 from ofs.base import OFSInterface, OFSException
 import boto
 import boto.exception
+import boto.connection
 
 class BotoOFS(OFSInterface):
     '''s3 backend for OFS.
@@ -175,13 +176,42 @@ class BotoOFS(OFSInterface):
         
         key.close()
     
-
     def del_metadata_keys(self, bucket, label, keys):
         key = self._require_key(self._require_bucket(bucket), label)
         for _key, value in key.metadata.items():
             if _key in keys:
                 del key.metadata[_key] 
         key.close()
+
+    def authenticate_request(self, method, bucket='', key='', headers=None):
+        '''Authenticate a HTTP request by filling in Authorization field header.
+
+        :param method: HTTP method (e.g. GET, PUT, POST)
+        :param bucket: name of the bucket.
+        :param key: name of key within bucket.
+        :param headers: dictionary of additional HTTP headers.
+
+        :return: boto.connection.HTTPRequest object with Authorization header
+        filled (NB: will also have a Date field if none before and a User-Agent
+        field will be set to Boto).
+        '''
+        # following is extracted from S3Connection.make_request and the method
+        # it calls: AWSAuthConnection.make_request
+        path = self.conn.calling_format.build_path_base(bucket, key)
+        auth_path = self.conn.calling_format.build_auth_path(bucket, key)
+        http_request = boto.connection.AWSAuthConnection.build_base_http_request(
+                self.conn,
+                method,
+                path,
+                auth_path,
+                {},
+                headers
+                )
+        http_request = boto.connection.AWSAuthConnection.fill_in_auth(
+                self.conn,
+                http_request)
+        return http_request
+
 
 class S3OFS(BotoOFS):
     
@@ -190,6 +220,7 @@ class S3OFS(BotoOFS):
         # http://code.google.com/p/boto/wiki/BotoConfig
         conn = boto.connect_s3(aws_access_key_id, aws_secret_access_key, **kwargs)
         super(S3OFS, self).__init__(conn)
+
 
 class GSOFS(BotoOFS):
 
