@@ -104,6 +104,7 @@ v0.4: 2011-04-28
 ----------------
 
   * New authenticate_request method for boto based backends.
+  * Improved update_medata in botostore (no need to download and re-upload).
 
 v0.3: 2011-01-20
 ----------------
