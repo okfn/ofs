@@ -161,19 +161,8 @@ class BotoOFS(OFSInterface):
     def update_metadata(self, bucket, label, params):
         key = self._require_key(self._require_bucket(bucket), label)
         self._update_key_metadata(key, params)
-        
-        #### HACK: Boto will not submit new metadata unless the file 
-        #### is uploaded again. 
-        (fp, fn) = mkstemp()
-        f_in = open(fn, 'wb')
-        key.get_contents_to_file(f_in)
-        f_in.close()
-        f_out = open(fn, 'rb')
-        key.set_contents_from_file(f_out)
-        f_out.close()
-        os.close(fp)
-        #### END HACK
-        
+        # cannot update metadata on its own. way round this is to copy file
+        key.copy(key.bucket, key.name, dict(key.metadata), preserve_acl=True)
         key.close()
     
     def del_metadata_keys(self, bucket, label, keys):
