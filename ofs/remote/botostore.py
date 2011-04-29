@@ -26,23 +26,19 @@ class BotoOFS(OFSInterface):
         self.conn = conn
         self._bucket_cache = {}
     
-    
     def _get_bucket(self, bucket_name):
         if not bucket_name in self._bucket_cache.keys():
             self._bucket_cache[bucket_name] = self.conn.lookup(bucket_name)
         return self._bucket_cache[bucket_name]
-    
     
     def _require_bucket(self, bucket_name):
         """ Also try to create the bucket. """
         if not self.exists(bucket_name) and not self.claim_bucket(bucket_name):
             raise OFSException("Invalid bucket: %s" % bucket_name)
         return self._get_bucket(bucket_name)
-    
         
     def _get_key(self, bucket, label):
         return bucket.get_key(label)
-    
     
     def _require_key(self, bucket, label):
         key = self._get_key(bucket, label)
@@ -50,13 +46,11 @@ class BotoOFS(OFSInterface):
             raise OFSException("%s->%s does not exist!" % (bucket.name, label))
         return key
     
-    
     def exists(self, bucket, label=None):
         bucket = self._get_bucket(bucket)
         if bucket is None: 
             return False
         return (label is None) or (label in bucket)
-    
     
     def claim_bucket(self, bucket):
         try:
@@ -67,7 +61,6 @@ class BotoOFS(OFSInterface):
         except boto.exception.S3CreateError, sce:
             return False
     
-    
     def _del_bucket(self, bucket):
         if self.exists(bucket):
             bucket = self._get_bucket(bucket)
@@ -76,18 +69,15 @@ class BotoOFS(OFSInterface):
             bucket.delete()
             del self._bucket_cache[bucket.name]
     
-    
     def list_labels(self, bucket):
         _bucket = self._get_bucket(bucket)
         for key in _bucket.list():
             yield key.name
 
-        
     def list_buckets(self):
         for bucket in self.conn.get_all_buckets():
             self._bucket_cache[bucket.name] = bucket
             yield bucket.name
-    
 
     def get_stream(self, bucket, label, as_stream=True):
         bucket = self._require_bucket(bucket)
@@ -96,14 +86,12 @@ class BotoOFS(OFSInterface):
             return key.get_contents_as_string()
         return key
     
-    
     def get_url(self, bucket, label):
         bucket = self._require_bucket(bucket)
         key = self._require_key(bucket, label)
         key.make_public()
         # expire can be negative when data is public
         return key.generate_url(-1) 
-    
 
     def put_stream(self, bucket, label, stream_object, params={}):
         bucket = self._require_bucket(bucket)
@@ -119,7 +107,6 @@ class BotoOFS(OFSInterface):
         self._update_key_metadata(key, params)
         key.set_contents_from_file(stream_object)
         key.close()
-    
 
     def del_stream(self, bucket, label):
         """ Will fail if the bucket or label don't exist """
@@ -127,13 +114,11 @@ class BotoOFS(OFSInterface):
         key = self._require_key(bucket, label)
         key.delete()
 
-
     def get_metadata(self, bucket, label):
         bucket = self._require_bucket(bucket)
         key = self._require_key(bucket, label)
         
-        # HACK: Amazon keeps getting hiccups when we actually use their metadata fields. 
-        meta = json.loads(key.metadata.get('_meta', '{}'))
+        meta = dict(key.metadata)
         meta.update({
             '_bucket': bucket.name,
             '_label': label,
@@ -144,7 +129,6 @@ class BotoOFS(OFSInterface):
         })
         return meta
     
-    
     def _update_key_metadata(self, key, params):
         if '_format' in params:
             key.content_type = params['_format']
@@ -153,10 +137,10 @@ class BotoOFS(OFSInterface):
         if '_owner' in params:
             key.owner = params['_owner']
             del params['_owner']
-        
-        # HACK: Amazon keeps getting hiccups when we actually use their metadata fields. 
-        key.update_metadata({'_meta': json.dumps(params)})
-        
+        for name in ['_label', '_bucket', '_last_modified', '_content_length']:
+            if name in params:
+                del params[name]
+        key.update_metadata(params)
 
     def update_metadata(self, bucket, label, params):
         key = self._require_key(self._require_bucket(bucket), label)
