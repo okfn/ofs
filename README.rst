@@ -1,13 +1,13 @@
 OFS is a bucket/object storage library.
 
-It provides a common API for doing storing bitstreams (+ a bit of related
-metadata) in 'bucket/object' stores such as:
+It provides a common API for storing bitstreams (plus related metadata) in
+'bucket/object' stores such as:
 
-  * Filesystem (+ pairtree)
-  * S3-compatible: S3, Google Storage, Eucalytus, Archive.org
-  * Riak (buggy)
+  * S3, Google Storage, Eucalytus, Archive.org
+  * Filesystem (via pairtree)
   * 'REST' Store (see remote/reststore.py - implementation at http://bitbucket.org/pudo/repod/)
-  * **add a backend here**
+  * Riak (buggy)
+  * **add a backend here** - just implement the methods in base.py
 
 Why use the library:
 
