@@ -20,6 +20,7 @@ class MethodRequest(Request):
 DEFAULT_HOST = 'http://repo.ckan.net'
 
 class RESTOFS(OFSInterface):
+    '''OFS interface to a RESTful storage system.'''
     
     def __init__(self, host=DEFAULT_HOST, http_user=None, http_pass=None):
         self.host = host.rstrip('/')

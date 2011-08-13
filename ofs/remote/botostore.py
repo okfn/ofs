@@ -201,6 +201,8 @@ class S3OFS(BotoOFS):
 
 
 class GSOFS(BotoOFS):
+    '''Google storage OFS backend.
+    '''
 
     def __init__(self, gs_access_key_id=None, gs_secret_access_key=None, **kwargs):
         conn = boto.connect_gs(gs_access_key_id, gs_secret_access_key, **kwargs)
