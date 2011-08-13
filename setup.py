@@ -18,7 +18,7 @@ setup(
     author="Ben O'Steen, Friedrich Lindenberg, Rufus Pollock",
     author_email="bosteen@gmail.com",
     license="http://www.apache.org/licenses/LICENSE-2.0",
-    url="http://bitbucket.org/okfn/ofs",
+    url="http://github.com/okfn/ofs",
     packages=find_packages(),
     test_suite = "test.test.TestPairtreeOFS",
     install_requires = ["argparse"],
