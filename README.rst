@@ -100,6 +100,11 @@ put in details for a google storage account.
 Changelog
 =========
 
+v0.4.1: 2011-08-13
+------------------
+
+  * Set checksum (md5) based on etag (botostore backends) if not set
+
 v0.4: 2011-04-28
 ----------------
 
