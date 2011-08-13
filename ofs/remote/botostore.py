@@ -125,7 +125,12 @@ class BotoOFS(OFSInterface):
             '_owner': key.owner,
             '_last_modified': key.last_modified,
             '_format': key.content_type,
-            '_content_length': key.size
+            '_content_length': key.size,
+            # Content-MD5 header is not made available from boto it seems but
+            # etag is and it corresponds to MD5. See
+            # http://code.google.com/apis/storage/docs/reference-headers.html#etag
+            # https://github.com/boto/boto/blob/master/boto/s3/key.py#L531
+            '_checksum': 'md5:' + key.etag.strip('"')
         })
         return meta
     
