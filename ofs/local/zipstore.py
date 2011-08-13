@@ -32,10 +32,8 @@ MD_FILE = "ZOFS_persistent_metadata.json"
 class ZOFS(OFSInterface):
     '''Implementation of an OFS interface to a zip file archive.
 
-    Metadata
-    ========
-
-    This is stored in the metadata/ 'folder' - same filename as the original bucket it describes.
+    Metadata: This is stored in the metadata/ 'folder' - same filename as the
+    original bucket it describes.
     '''
     def __init__(self, zipfile, mode="r", compression=ZIP_STORED, allowZip64=False, hashing_type="md5", quiet=False):
         """Open the ZOFS ZIP file archive with mode read "r", write "w" or append "a"."""

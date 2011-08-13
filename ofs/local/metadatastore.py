@@ -21,8 +21,7 @@ class MDOFS(OFSInterface):
     
     Uses pairtree storage, but a pairtree id only comprises part of a bucket id.
 
-    Metadata
-    ========
+    **Metadata**
 
     Metadata keys must be ascii and alphanumeric plus '_' and '-'.
 
@@ -65,10 +64,6 @@ class MDOFS(OFSInterface):
         return (ptid+frag, label)
     
     def exists(self, bucket, label=None):
-        '''Whether a given bucket:label object already exists.
-
-        :return: bool.
-        '''
         if label:
             ptid, fn = self._toptid(bucket, label)
             return self._ptstore.exists(ptid, fn)
@@ -86,11 +81,6 @@ class MDOFS(OFSInterface):
             #return False
 
     def claim_bucket(self, bucket=None):
-        '''Claim a bucket.
-
-        :return: True if successful, False otherwise.
-        '''
-        
         if not bucket:
             bucket = uuid4().hex
             while(self.exists(bucket)):
@@ -101,11 +91,6 @@ class MDOFS(OFSInterface):
         
 
     def list_labels(self, bucket):
-        '''List labels for the given bucket.
-
-        :param bucket: bucket to list labels for.
-        :return: iterator for the labels in the specified bucket.
-        '''
         ptid, prefix = self._toptid(bucket)
         for item in self._ptstore.list_labels(ptid):
             if item.startswith(prefix):
@@ -113,10 +98,6 @@ class MDOFS(OFSInterface):
                 yield label
     
     def list_buckets(self):
-        '''List all buckets managed by this OFS instance.
-        
-        :return: iterator for the buckets.
-        '''
         b_set = set()
         for ptid in self._ptstore.list_buckets():
             for item in self._ptstore.list_labels(ptid):
@@ -126,59 +107,31 @@ class MDOFS(OFSInterface):
                     yield bucket
         
     def get_stream(self, bucket, label, as_stream=True):
-        '''Get a bitstream for the given bucket:label combination.
-
-        :param bucket: the bucket to use.
-        :return: bitstream as a file-like object 
-        '''
         ptid, fn = self._topt(bucket, label)
         return self._ptstore.get_stream(ptid, fn, as_stream)
 
     def get_url(self, bucket, label):
-        '''Get a URL that should point at the bucket:labelled resource. Aimed to aid web apps by allowing them to redirect to an open resource, rather than proxy the bitstream.
-
-        :param bucket: the bucket to use.
-        :param label: the label of the resource to get
-        :return: a string URL - NB 'file:///...' is a resource on the locally mounted systems.
-        '''
         ptid, fn = self._topt(bucket, label)
         return self._ptstore.get_url(ptid, fn)
 
     def put_stream(self, bucket, label, stream_object, params={}):
-        '''Put a bitstream (stream_object) for the specified bucket:label identifier.
-
-        :param bucket: as standard
-        :param label: as standard
-        :param stream_object: file-like object to read from.
-        :param params: update metadata with these params (see `update_metadata`)
-        '''
         ptid, fn = self._topt(bucket, label)
         params['_label'] = label
         return self._ptstore.put_stream(ptid, fn, stream_object, params)
 
     def del_stream(self, bucket, label):
-        '''Delete a bitstream.
-        '''
         ptid, fn = self._topt(bucket, label)
         return self._ptstore.del_stream(ptid, fn)
         
     def get_metadata(self, bucket, label):
-        '''Get the metadata for this bucket:label identifier.
-        '''
         ptid, fn = self._topt(bucket, label)
         return self._ptstore.get_metadata(ptid, fn)
 
     def update_metadata(self, bucket, label, params):
-        '''Update the metadata with the provided dictionary of params.
-
-        :param parmams: dictionary of key values (json serializable).
-        '''
         ptid, fn = self._topt(bucket, label)
         return self._ptstore.update_metadata(ptid, fn, params)
 
     def del_metadata_keys(self, bucket, label, keys):
-        '''Delete the metadata corresponding to the specified keys.
-        '''
         ptid, fn = self._topt(bucket, label)
         return self._ptstore.del_metadata_keys(ptid, fn, keys)
 

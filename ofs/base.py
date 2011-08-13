@@ -8,8 +8,7 @@ class OFSInterface(object):
     '''Abstract specification of OFS interface. Implementing backends *must*
     implement at least this interface.
 
-    Metadata
-    ========
+    **Metadata**
 
     Metadata keys must be ascii and alphanumeric plus '_' and '-'.
 

@@ -18,6 +18,10 @@ class OFSNotFound(Exception):
     pass
 
 class PTOFS(OFSInterface):
+    '''OFS backend backed onto the filesystem and using PairTree_.
+
+    .. _PairTree: http://pypi.python.org/pypi/Pairtree
+    '''
     def __init__(self, storage_dir="data", uri_base="urn:uuid:", hashing_type="md5", shorty_length=2):
         self.storage_dir = storage_dir
         self.uri_base = uri_base
