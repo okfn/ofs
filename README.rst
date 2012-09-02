@@ -25,21 +25,21 @@ Example Usage
 
 (local version - depends on 'pairtree', and 'simplejson')::
 
-    >>> from ofs.local import OFS
+    >>> from ofs.local import PTOFS
 
-    >>> o = OFS()
-    (Equivalent to 'o = OFS(storage_dir = "data", uri_base="urn:uuid:", hashing_type="md5")')
+    >>> o = PTOFS()
+    (Equivalent to 'o = PTOFS(storage_dir = "data", uri_base="urn:uuid:", hashing_type="md5")')
 
     # Claim a bucket - this will add the bucket to the list of existing ones
-    >>> uuid_id = o.claim_a_bucket()
+    >>> uuid_id = o.claim_bucket()
     >>> uuid_id
     '4aaa43cdf5ba44e2ad25acdbd1cf2f70'
 
     # Choose a bucket name - if it exists, a new UUID one will be formed instead and returned
-    >>> bucket_id = o.claim_a_bucket("foo")
+    >>> bucket_id = o.claim_bucket("foo")
     >>> bucket_id
     'foo'
-    >>> bucket_id = o.claim_a_bucket("foo")
+    >>> bucket_id = o.claim_bucket("foo")
     >>> bucket_id
     '1bf93208521545879e79c13614cd12f0'
 
