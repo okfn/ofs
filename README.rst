@@ -25,10 +25,10 @@ Example Usage
 
 (local version - depends on 'pairtree', and 'simplejson')::
 
-    >>> from ofs.local import OFS
+    >>> from ofs.local import PTOFS
 
-    >>> o = OFS()
-    (Equivalent to 'o = OFS(storage_dir = "data", uri_base="urn:uuid:", hashing_type="md5")')
+    >>> o = PTOFS()
+    (Equivalent to 'o = PTOFS(storage_dir = "data", uri_base="urn:uuid:", hashing_type="md5")')
 
     # Claim a bucket - this will add the bucket to the list of existing ones
     >>> uuid_id = o.claim_bucket()
