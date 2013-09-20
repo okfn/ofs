@@ -15,6 +15,14 @@ from ofs.base import OFSInterface, OFSException
 import boto
 import boto.exception
 import boto.connection
+import boto.s3.connection
+
+CALLING_FORMATS = {
+    'SubdomainCallingFormat': boto.s3.connection.SubdomainCallingFormat(),
+    'VHostCallingFormat': boto.s3.connection.VHostCallingFormat(),
+    'OrdinaryCallingFormat': boto.s3.connection.OrdinaryCallingFormat(),
+    'ProtocolIndependentOrdinaryCallingFormat': boto.s3.connection.ProtocolIndependentOrdinaryCallingFormat()}
+
 
 class BotoOFS(OFSInterface):
     '''s3 backend for OFS.
@@ -196,6 +204,8 @@ class S3OFS(BotoOFS):
     def __init__(self, aws_access_key_id=None, aws_secret_access_key=None, **kwargs):
         # assume external configuration at the moment. 
         # http://code.google.com/p/boto/wiki/BotoConfig
+        if 'calling_format' in kwargs:
+            kwargs['calling_format'] = CALLING_FORMATS[kwargs['calling_format']]
         conn = boto.connect_s3(aws_access_key_id, aws_secret_access_key, **kwargs)
         super(S3OFS, self).__init__(conn)
 
