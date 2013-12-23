@@ -193,9 +193,7 @@ class BotoOFS(OFSInterface):
                 {},
                 headers
                 )
-        http_request = boto.connection.AWSAuthConnection.fill_in_auth(
-                self.conn,
-                http_request)
+        http_request.authorize(connection=self.conn)
         return http_request
 
 
