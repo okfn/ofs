@@ -31,6 +31,7 @@ setup(
     s3bounce = ofs.remote.proxystore:S3Bounce
     archive.org = ofs.remote.botostore:ArchiveOrgOFS
     reststore = ofs.remote.reststore:RESTOFS
+    swift = ofs.remote.swiftstore:SwiftOFS
 
     [console_scripts]
     ofs_upload = ofs.command:ofs
