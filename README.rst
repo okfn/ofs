@@ -86,7 +86,10 @@ Example Usage
     4a726b0a33974480a2a26d34fa0d494d
     4aaa43cdf5ba44e2ad25acdbd1cf2f70
     .... etc
-
+    
+    # Display the labels in a specific bucket:
+    >>>o.list_labels("1bf93208521545879e79c13614cd12f0")
+    [u'foo.txt']
 
 Developer
 =========
