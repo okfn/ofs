@@ -12,8 +12,7 @@ It provides a common API for storing bitstreams (plus related metadata) in
 Why use the library:
 
   * Abstraction: write common code but use different storage backends
-  * More than a filesystem, less than a database - support for metadata as well
-    bitstreams
+  * More than a filesystem, less than a database - support for metadata as well as bitstreams
 
 Requirements
 ============
