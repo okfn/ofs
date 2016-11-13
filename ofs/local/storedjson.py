@@ -1,3 +1,4 @@
+from __future__ import print_function
 from __future__ import with_statement
 
 from os import path
@@ -17,18 +18,18 @@ class PersistentState(object):
         if filepath:
             self.set_filepath(filepath, filename, create)
         self.revert()
-    
+
     def set_filepath(self, filepath, filename=PERSISTENCE_FILENAME, create = True):
         if path.isdir(filepath):
-            # print "Filepath exists - setting persistence file to %s" % path.join(filepath, filename)
+            # print("Filepath exists - setting persistence file to %s" % path.join(filepath, filename))
             self.filepath = path.join(filepath, filename)
             if create and not path.isfile(self.filepath):
                 self.sync()
             return True
         else:
-            print "Filepath does not exist - persistence file would not be able to be created"
+            print("Filepath does not exist - persistence file would not be able to be created")
             return False
-    
+
     def revert(self):
         """Revert the state to the version stored on disc."""
         if self.filepath:
@@ -37,16 +38,16 @@ class PersistentState(object):
                 try:
                     self.state = json.load(serialised_file)
                 except ValueError:
-                    print "No JSON information could be read from the persistence file - could be empty: %s" % self.filepath
+                    print("No JSON information could be read from the persistence file - could be empty: %s" % self.filepath)
                     self.state = {}
                 finally:
                     serialised_file.close()
             else:
-                print "The persistence file has not yet been created or does not exist, so the state cannot be read from it yet."
+                print("The persistence file has not yet been created or does not exist, so the state cannot be read from it yet.")
         else:
-            print "Filepath to the persistence file is not set. State cannot be read."
+            print("Filepath to the persistence file is not set. State cannot be read.")
             return False
-    
+
     def sync(self):
         """Synchronise and update the stored state to the in-memory state."""
         if self.filepath:
@@ -54,7 +55,7 @@ class PersistentState(object):
             json.dump(self.state, serialised_file)
             serialised_file.close()
         else:
-            print "Filepath to the persistence file is not set. State cannot be synced to disc."
+            print("Filepath to the persistence file is not set. State cannot be synced to disc.")
 
     # Dictionary methods
     def keys(self): return self.state.keys()

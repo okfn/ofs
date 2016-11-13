@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
+from __future__ import print_function
 
 from ofs.local.zipfile import ZipFile, BadZipfile, LargeZipFile, ZIP_STORED, ZIP_DEFLATED, is_zipfile
 
@@ -21,14 +22,14 @@ try:
     import json
 except ImportError:
     import simplejson as json
-    
+
 class NoSuchZipArchive(OFSException):
     pass
 class BadZipArchive(OFSException):
     pass
 
 MD_FILE = "ZOFS_persistent_metadata.json"
-        
+
 class ZOFS(OFSInterface):
     '''Implementation of an OFS interface to a zip file archive.
 
@@ -40,7 +41,7 @@ class ZOFS(OFSInterface):
         if mode not in ("r", "w", "a"):
             raise RuntimeError('ZOFS() requires mode "r", "w", or "a" (due to underlying ZipFile class)')
         if mode in ("w", "a") and not quiet:
-            print "IMPORTANT: You MUST .close() this ZOFS instance for it to write the ending records in '%s' mode. Otherwise the resultant zip archive will be unreadable." % mode
+            print("IMPORTANT: You MUST .close() this ZOFS instance for it to write the ending records in '%s' mode. Otherwise the resultant zip archive will be unreadable." % mode)
         self.zipfile = zipfile
         self.mode = mode
         self.compression = compression
@@ -48,20 +49,20 @@ class ZOFS(OFSInterface):
         self.hashing_type = hashing_type
         self.quiet = quiet
         if mode == "r" and not is_zipfile(zipfile):
-            raise BadZipArchive, e
+            raise e
         try:
             self.z = ZipFile(self.zipfile, self.mode, self.compression, self.allowZip64)
             #if mode != "r":
             #    """For safety's sake, close the w or a'd archive and open only when in use"""
             #    self.close()
             #    del self.z
-        except BadZipfile,e:
-            print "Couldn't open the zipfile at '%s'" % zipfile
-            print "Got BadZipfile %s error" % e
-            raise BadZipArchive, e
-        except LargeZipFile,e:
-            print "the zipfile requires ZIP64 extensions and those extensions are disabled."
-            raise BadZipArchive, e
+        except BadZipfile as e:
+            print("Couldn't open the zipfile at '%s'" % zipfile)
+            print("Got BadZipfile %s error" % e)
+            raise BadZipArchive(e)
+        except LargeZipFile as e:
+            print("the zipfile requires ZIP64 extensions and those extensions are disabled.")
+            raise BadZipArchive(e)
 
     def _write(self, z, bucket, label, stream):
         # Not to be used directly
@@ -90,24 +91,24 @@ class ZOFS(OFSInterface):
         if self.hashing_type != None:
             return size, '%s:%s' % (self.hashing_type, hash_gen.hexdigest())
         return size, ""
-        
+
     def __del__(self):
         """Unlikely that this will be called, but just in case"""
         self.close()
-    
+
     def close(self):
         # Close the zipfile handle
         self.z.close()
-    
+
     def _zf(self, bucket, label):
         # encodes the ids and turns it into a viable zipfile path
         return "/".join((ppath.id_encode(bucket), label))    # forcing / joining for zipfiles...
-    
+
     def _nf(self, name):
         # decodes the path, and returns a tuple of (bucket, label)
         enc_bucket, label = name.split("/", 1)
         return (ppath.id_decode(enc_bucket), label)
-    
+
     def exists(self, bucket, label):
         '''Whether a given bucket:label object already exists.'''
         fn = self._zf(bucket, label)
@@ -118,9 +119,9 @@ class ZOFS(OFSInterface):
             return False
 
     def claim_bucket(self, bucket=None):
-        '''Claim a bucket. -- This is a NOOP as the bucket is a virtual folder 
+        '''Claim a bucket. -- This is a NOOP as the bucket is a virtual folder
         in the zipfile and does not exist without files it 'contains'.
-        
+
         Called without a 'bucket' it will respond with a uuid.'''
         if bucket:
             return bucket
@@ -139,13 +140,13 @@ class ZOFS(OFSInterface):
             container, label = self._nf(name.encode("utf-8"))
             if container == bucket and label != MD_FILE:
                 yield label
-    
+
     def list_buckets(self):
         '''List all buckets managed by this OFS instance. Like list_labels, this also
         walks the entire archive, yielding the bucketnames. A local set is retained so that
         duplicates aren't returned so this will temporarily pull the entire list into memory
         even though this is a generator and will slow as more buckets are added to the set.
-        
+
         :return: iterator for the buckets.
         '''
         buckets = set()
@@ -159,10 +160,10 @@ class ZOFS(OFSInterface):
         '''Get a bitstream for the given bucket:label combination.
 
         :param bucket: the bucket to use.
-        :return: bitstream as a file-like object 
+        :return: bitstream as a file-like object
         '''
         if self.mode == "w":
-            raise OFSException, "Cannot read from archive in 'w' mode"
+            raise OFSException("Cannot read from archive in 'w' mode")
         elif self.exists(bucket, label):
             fn = self._zf(bucket, label)
             if as_stream:
@@ -177,7 +178,7 @@ class ZOFS(OFSInterface):
 
         :param bucket: the bucket to use.
         :param label: the label of the resource to get
-        :return: a string URI - eg 'zip:file:///home/.../foo.zip!/bucket/label' 
+        :return: a string URI - eg 'zip:file:///home/.../foo.zip!/bucket/label'
         '''
         if self.exists(bucket, label):
             root = "zip:file//%s" % os.path.abspath(self.zipfile)
@@ -195,7 +196,7 @@ class ZOFS(OFSInterface):
         :param params: update metadata with these params (see `update_metadata`)
         '''
         if self.mode == "r":
-            raise OFSException, "Cannot write into archive in 'r' mode"
+            raise OFSException("Cannot write into archive in 'r' mode")
         else:
             fn = self._zf(bucket, label)
             params['_creation_date'] = datetime.now().isoformat().split(".")[0]  ## '2010-07-08T19:56:47'
@@ -220,9 +221,9 @@ class ZOFS(OFSInterface):
             if add_md:
                 params = self.update_metadata(bucket, label, params)
             return params
-    
+
     def _del_stream(self, zinfo):
-        print "DELETE DISABLED... until I can get it working..."
+        print("DELETE DISABLED... until I can get it working...")
         pass
         #if self.mode == "a":
         #    self.z.close()
@@ -231,8 +232,8 @@ class ZOFS(OFSInterface):
         #if self.mode == "a":
         #    self.z.close()
         #    self.z = ZipFile(self.zipfile, self.mode, self.compression, self.allowZip64)
-        
-    
+
+
     def del_stream(self, bucket, label):
         '''Delete a bitstream. This needs more testing - file deletion in a zipfile
         is problematic. Alternate method is to create second zipfile without the files
@@ -243,7 +244,7 @@ class ZOFS(OFSInterface):
             #z = ZipFile(self.zipfile, self.mode, self.compression, self.allowZip64)
             self._del_stream(name)
             #z.close()
-    
+
     def _get_bucket_md(self, bucket):
         name = self._zf(bucket, MD_FILE)
         if not self.exists(bucket, MD_FILE):
@@ -256,9 +257,9 @@ class ZOFS(OFSInterface):
                 jsn = json.loads(json_doc)
                 return jsn
             except ValueError:
-                raise OFSException, "Cannot read metadata for %s" % bucket
+                raise OFSException("Cannot read metadata for %s" % bucket)
         else:
-            raise OFSException, "Cannot read from archive in 'w' mode"
+            raise OFSException("Cannot read from archive in 'w' mode")
 
     def get_metadata(self, bucket, label):
         '''Get the metadata for this bucket:label identifier.
@@ -269,14 +270,14 @@ class ZOFS(OFSInterface):
             except OFSFileNotFound:
                 # No MD found...
                 return {}
-            except OFSException, e:
-                raise OFSException, e
+            except OFSException as e:
+                raise OFSException(e)
             if jsn.has_key(label):
                 return jsn[label]
             else:
                 return {}
         else:
-            raise OFSException, "Cannot read md from archive in 'w' mode"
+            raise OFSException("Cannot read md from archive in 'w' mode")
 
     def update_metadata(self, bucket, label, params):
         '''Update the metadata with the provided dictionary of params.
@@ -293,17 +294,17 @@ class ZOFS(OFSInterface):
                     payload[l] = {}
                     payload[l]['_label'] = l
                 if not self.quiet:
-                    print "Had to create md file for %s" % bucket
-            except OFSException, e:
-                raise OFSException, e
+                    print("Had to create md file for %s" % bucket)
+            except OFSException as e:
+                raise OFSException(e)
             if not payload.has_key(label):
                 payload[label] = {}
             payload[label].update(params)
             self.put_stream(bucket, MD_FILE, json.dumps(payload), params={}, replace=True, add_md=False)
             return payload[label]
         else:
-            raise OFSException, "Cannot update MD in archive in 'r' mode"
-            
+            raise OFSException("Cannot update MD in archive in 'r' mode")
+
     def del_metadata_keys(self, bucket, label, keys):
         '''Delete the metadata corresponding to the specified keys.
         '''
@@ -311,14 +312,14 @@ class ZOFS(OFSInterface):
             try:
                 payload = self._get_bucket_md(bucket)
             except OFSFileNotFound:
-                # No MD found... 
-                raise OFSFileNotFound, "Couldn't find a md file for %s bucket" % bucket
-            except OFSException, e:
-                raise OFSException, e
+                # No MD found...
+                raise OFSFileNotFound("Couldn't find a md file for %s bucket" % bucket)
+            except OFSException as e:
+                raise OFSException(e)
             if payload.has_key(label):
                 for key in [x for x in keys if payload[label].has_key(x)]:
                     del payload[label][key]
             self.put_stream(bucket, MD_FILE, json.dumps(payload), params={}, replace=True, add_md=False)
         else:
-            raise OFSException, "Cannot update MD in archive in 'r' mode"
+            raise OFSException("Cannot update MD in archive in 'r' mode")
 

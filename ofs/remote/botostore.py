@@ -26,49 +26,49 @@ CALLING_FORMATS = {
 
 class BotoOFS(OFSInterface):
     '''s3 backend for OFS.
-    
+
     This is a simple S3 implementation of OFS that depends on the boto library.
     '''
-    
+
     def __init__(self, conn):
         self.conn = conn
         self._bucket_cache = {}
-    
+
     def _get_bucket(self, bucket_name):
         if not bucket_name in self._bucket_cache.keys():
             self._bucket_cache[bucket_name] = self.conn.lookup(bucket_name)
         return self._bucket_cache[bucket_name]
-    
+
     def _require_bucket(self, bucket_name):
         """ Also try to create the bucket. """
         if not self.exists(bucket_name) and not self.claim_bucket(bucket_name):
             raise OFSException("Invalid bucket: %s" % bucket_name)
         return self._get_bucket(bucket_name)
-        
+
     def _get_key(self, bucket, label):
         return bucket.get_key(label)
-    
+
     def _require_key(self, bucket, label):
         key = self._get_key(bucket, label)
         if key is None:
             raise OFSException("%s->%s does not exist!" % (bucket.name, label))
         return key
-    
+
     def exists(self, bucket, label=None):
         bucket = self._get_bucket(bucket)
-        if bucket is None: 
+        if bucket is None:
             return False
         return (label is None) or (label in bucket)
-    
+
     def claim_bucket(self, bucket):
         try:
             if self.exists(bucket):
                 return False
             self._bucket_cache[bucket] = self.conn.create_bucket(bucket)
             return True
-        except boto.exception.S3CreateError, sce:
+        except boto.exception.S3CreateError:
             return False
-    
+
     def _del_bucket(self, bucket):
         if self.exists(bucket):
             bucket = self._get_bucket(bucket)
@@ -76,7 +76,7 @@ class BotoOFS(OFSInterface):
                 key.delete()
             bucket.delete()
             del self._bucket_cache[bucket.name]
-    
+
     def list_labels(self, bucket):
         _bucket = self._get_bucket(bucket)
         for key in _bucket.list():
@@ -93,13 +93,13 @@ class BotoOFS(OFSInterface):
         if not as_stream:
             return key.get_contents_as_string()
         return key
-    
+
     def get_url(self, bucket, label):
         bucket = self._require_bucket(bucket)
         key = self._require_key(bucket, label)
         key.make_public()
         # expire can be negative when data is public
-        return key.generate_url(-1) 
+        return key.generate_url(-1)
 
     def put_stream(self, bucket, label, stream_object, params={}):
         bucket = self._require_bucket(bucket)
@@ -108,10 +108,10 @@ class BotoOFS(OFSInterface):
             key = bucket.new_key(label)
             if not '_creation_time' in params:
                 params['_creation_time'] = str(datetime.utcnow())
-        
+
         if not '_checksum' in params:
             params['_checksum'] = 'md5:' + key.compute_md5(stream_object)[0]
-        
+
         self._update_key_metadata(key, params)
         key.set_contents_from_file(stream_object)
         key.close()
@@ -125,7 +125,7 @@ class BotoOFS(OFSInterface):
     def get_metadata(self, bucket, label):
         bucket = self._require_bucket(bucket)
         key = self._require_key(bucket, label)
-        
+
         meta = dict(key.metadata)
         meta.update({
             '_bucket': bucket.name,
@@ -141,12 +141,12 @@ class BotoOFS(OFSInterface):
             '_checksum': 'md5:' + key.etag.strip('"')
         })
         return meta
-    
+
     def _update_key_metadata(self, key, params):
         if '_format' in params:
             key.content_type = params['_format']
             del params['_format']
-        
+
         if '_owner' in params:
             key.owner = params['_owner']
             del params['_owner']
@@ -161,12 +161,12 @@ class BotoOFS(OFSInterface):
         # cannot update metadata on its own. way round this is to copy file
         key.copy(key.bucket, key.name, dict(key.metadata), preserve_acl=True)
         key.close()
-    
+
     def del_metadata_keys(self, bucket, label, keys):
         key = self._require_key(self._require_bucket(bucket), label)
         for _key, value in key.metadata.items():
             if _key in keys:
-                del key.metadata[_key] 
+                del key.metadata[_key]
         key.close()
 
     def authenticate_request(self, method, bucket='', key='', headers=None):
@@ -198,9 +198,9 @@ class BotoOFS(OFSInterface):
 
 
 class S3OFS(BotoOFS):
-    
+
     def __init__(self, aws_access_key_id=None, aws_secret_access_key=None, **kwargs):
-        # assume external configuration at the moment. 
+        # assume external configuration at the moment.
         # http://code.google.com/p/boto/wiki/BotoConfig
         if 'calling_format' in kwargs:
             kwargs['calling_format'] = CALLING_FORMATS[kwargs['calling_format']]
@@ -214,7 +214,7 @@ class GSOFS(BotoOFS):
 
     def __init__(self, gs_access_key_id=None, gs_secret_access_key=None, **kwargs):
         conn = boto.connect_gs(gs_access_key_id, gs_secret_access_key, **kwargs)
-        super(GSOFS, self).__init__(conn)    
+        super(GSOFS, self).__init__(conn)
 
 class ArchiveOrgOFS(S3OFS):
     '''An archive.org backend utilizing the archive.org s3 interface (see:

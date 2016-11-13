@@ -5,7 +5,6 @@ except ImportError:
     import simplejson as json
 from ofs.base import OFSInterface, OFSException
 import getpass
-import urllib2
 import boto
 import boto.exception
 from boto.connection import AWSAuthConnection
@@ -28,7 +27,7 @@ class S3Bounce(OFSInterface):
         path = "/" + bucket + "/" + label
 
         content_type = metadata.get("_format", "application/octet-stream")
-        
+
         metadata = self.ckan.storage_metadata_set(path, metadata)
         BufferSize = 65536 ## set to something very small to make sure
                                        ## chunking is working properly
@@ -106,7 +105,7 @@ class S3Bounce(OFSInterface):
         awsc = AWSAuthConnection(host,
                                  aws_access_key_id="key_id",
                                  aws_secret_access_key="secret")
-                                 
+
         awsc._mexe('PUT', path, None, headers, sender=sender)
 
         metadata = self.ckan.storage_metadata_update(path, {})
