@@ -59,7 +59,7 @@ class PersistentState(object):
 
     # Dictionary methods
     def keys(self): return self.state.keys()
-    def has_key(self, key): return self.state.has_key(key)
+    def has_key(self, key): return key in self.state
     def items(self): return self.state.items()
     def values(self): return self.state.values()
     def clear(self): self.state.clear()

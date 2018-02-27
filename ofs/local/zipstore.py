@@ -106,7 +106,7 @@ class ZOFS(OFSInterface):
 
     def _nf(self, name):
         # decodes the path, and returns a tuple of (bucket, label)
-        enc_bucket, label = name.split("/", 1)
+        enc_bucket, label = name.split(b"/", 1)
         return (ppath.id_decode(enc_bucket), label)
 
     def exists(self, bucket, label):
@@ -187,7 +187,7 @@ class ZOFS(OFSInterface):
         else:
             raise OFSFileNotFound
 
-    def put_stream(self, bucket, label, stream_object, params={}, replace=True, add_md=True):
+    def put_stream(self, bucket, label, stream_object, params=None, replace=True, add_md=True):
         '''Put a bitstream (stream_object) for the specified bucket:label identifier.
 
         :param bucket: as standard
@@ -198,6 +198,7 @@ class ZOFS(OFSInterface):
         if self.mode == "r":
             raise OFSException("Cannot write into archive in 'r' mode")
         else:
+            params = params or {}
             fn = self._zf(bucket, label)
             params['_creation_date'] = datetime.now().isoformat().split(".")[0]  ## '2010-07-08T19:56:47'
             params['_label'] = label
@@ -272,7 +273,7 @@ class ZOFS(OFSInterface):
                 return {}
             except OFSException as e:
                 raise OFSException(e)
-            if jsn.has_key(label):
+            if label in jsn:
                 return jsn[label]
             else:
                 return {}
@@ -297,10 +298,10 @@ class ZOFS(OFSInterface):
                     print("Had to create md file for %s" % bucket)
             except OFSException as e:
                 raise OFSException(e)
-            if not payload.has_key(label):
+            if not label in payload:
                 payload[label] = {}
             payload[label].update(params)
-            self.put_stream(bucket, MD_FILE, json.dumps(payload), params={}, replace=True, add_md=False)
+            self.put_stream(bucket, MD_FILE, json.dumps(payload).encode('utf-8'), params={}, replace=True, add_md=False)
             return payload[label]
         else:
             raise OFSException("Cannot update MD in archive in 'r' mode")
