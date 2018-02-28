@@ -2,7 +2,7 @@
 
 from __future__ import with_statement
 
-from storedjson import PersistentState
+from .storedjson import PersistentState
 
 from pairtree import PairtreeStorageClient
 from pairtree import id_encode, id_decode
@@ -28,7 +28,7 @@ class PTOFS(OFSInterface):
         self.hashing_type = hashing_type
         self.shorty_length = shorty_length
         self._open_store()
-    
+
     def _open_store(self):
         if self.hashing_type:
             self._store = PairtreeStorageClient(self.uri_base, self.storage_dir, shorty_length=self.shorty_length, hashing_type=self.hashing_type)
@@ -41,7 +41,7 @@ class PTOFS(OFSInterface):
                 return self._store.isfile(bucket, label)
             else:
                 return True
-    
+
     def _get_object(self, bucket):
         po = self._store.get_object(bucket)
         json_payload = PersistentState(po.id_to_dirpath())
@@ -50,7 +50,7 @@ class PTOFS(OFSInterface):
     def _setup_item(self, bucket):
         _, json_payload = self._get_object(bucket)
         json_payload.sync()
-    
+
     def claim_bucket(self, bucket=None):
         if bucket:
             if self.exists(bucket):
@@ -61,7 +61,7 @@ class PTOFS(OFSInterface):
                 bucket = uuid4().hex
         self._setup_item(bucket)
         return bucket
-        
+
     def list_labels(self, bucket):
         if self.exists(bucket):
             _, json_payload = self._get_object(bucket)
@@ -69,7 +69,7 @@ class PTOFS(OFSInterface):
 
     def list_buckets(self):
         return self._store.list_ids()
-        
+
     def put_stream(self, bucket, label, stream_object, params={}):
         ## QUESTION: do we enforce that the bucket's have to be 'claimed' first?
         ## NB this method doesn't care if it has been
@@ -80,21 +80,21 @@ class PTOFS(OFSInterface):
         else:
             # New upload - record creation date
             creation_date = datetime.now().isoformat().split(".")[0]  ## '2010-07-08T19:56:47'
-            if params.has_key('_label'):
+            if '_label' in params:
                 json_payload[label] = {"_label":params['_label']}
             else:
                 json_payload[label] = {"_label":label}
 
         hash_vals = po.add_bytestream_by_path(label, stream_object)
         stat_vals = po.stat(label)
-        
+
         # Userland parameters for the file
         cleaned_params = dict( [ (k, params[k]) for k in params if not k.startswith("_")])
         json_payload[label].update(cleaned_params)
         try:
             json_payload[label]['_content_length'] = int(stat_vals.st_size)
         except TypeError:
-            print "Error getting filesize from os.stat().st_size into an integer..."
+            print("Error getting filesize from os.stat().st_size into an integer...")
         if creation_date:
             json_payload[label]['_creation_date'] = creation_date
             json_payload[label]['_last_modified'] = creation_date
@@ -119,14 +119,14 @@ class PTOFS(OFSInterface):
             return self._store.get_url(bucket, label)
         else:
             raise FileNotFoundException
-    
+
     def get_metadata(self, bucket, label):
         if self.exists(bucket):
             _, json_payload = self._get_object(bucket)
             if json_payload.has_key(label):
                 return json_payload.state[label]
         raise FileNotFoundException
-    
+
     def update_metadata(self, bucket, label, params):
         if self.exists(bucket, label) and isinstance(params, dict):
             _, json_payload = self._get_object(bucket)
@@ -137,7 +137,7 @@ class PTOFS(OFSInterface):
             return json_payload.state[label]
         else:
             raise FileNotFoundException
-    
+
     def del_metadata_keys(self, bucket, label, keys):
         if self.exists(bucket, label) and isinstance(keys, list):
             _, json_payload = self._get_object(bucket)

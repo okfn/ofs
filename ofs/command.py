@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import argparse
 from ConfigParser import ConfigParser
 from ofs import get_impl
@@ -49,7 +51,7 @@ class OFS(argparse.ArgumentParser):
     def run(self, args):
         self.make_label(args.path)
         def pp(sent, total):
-            print sent, "/", total
+            print(sent, "/", total)
         self.proxy_upload(args.path, args.filename, args.content_type, cb=pp)
 
     def make_label(self, path):
@@ -61,7 +63,7 @@ class OFS(argparse.ArgumentParser):
         from StringIO import StringIO
         path = path.lstrip("/")
         bucket, label = path.split("/", 1)
-        
+
         bucket = self.ofs._require_bucket(bucket)
         key = self.ofs._get_key(bucket, label)
         if key is None:
@@ -89,7 +91,7 @@ class OFS(argparse.ArgumentParser):
         and key (== path) exists. What we do here is simple. Calculate
         the headers we will need, (e.g. md5, content-type, etc). Then
         we ask the self.get_proxy_config method to fill in the authentication
-        information and tell us which remote host we should talk to 
+        information and tell us which remote host we should talk to
         for the upload. From there, the rest is ripped from
         boto.key.Key.send_file
         """
@@ -128,11 +130,11 @@ class OFS(argparse.ArgumentParser):
         host, headers = self.get_proxy_config(headers, path)
 
         ### how to do this same thing with curl instead...
-        print "curl -i --trace-ascii foo.log -T %s -H %s https://%s%s" % (
+        print("curl -i --trace-ascii foo.log -T %s -H %s https://%s%s" % (
             filename,
             " -H ".join("'%s: %s'" % (k,v) for k,v in headers.items()),
             host, path
-            )
+            ))
 
         def sender(http_conn, method, path, data, headers):
             http_conn.putrequest(method, path)

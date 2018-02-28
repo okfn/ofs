@@ -79,7 +79,7 @@ Example Usage
 
     # Iterate through ids for buckets held:
     >>> for item in o.list_buckets():
-    ...   print item
+    ...   print(item)
     ... 
     447536aa0f1b411089d12399738ede8e
     4a726b0a33974480a2a26d34fa0d494d
